@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
 import { db } from "../config"; // Assuming you have a firebase config file
-import { FiCheckCircle, FiAlertTriangle, FiSearch } from "react-icons/fi";
+import { FiCheckCircle, FiAlertTriangle, FiSearch, FiPackage } from "react-icons/fi";
 import AdminNavbar from "../components/AdminNav"; // Import your Navbar
 
 const AdminScanQR = () => {
@@ -9,6 +9,8 @@ const AdminScanQR = () => {
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [updating, setUpdating] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   const handleManualSearch = async (e) => {
     e.preventDefault();
@@ -17,6 +19,7 @@ const AdminScanQR = () => {
     try {
       setLoading(true);
       setError(null);
+      setSuccessMessage(null);
       await fetchInvoiceData(invoiceId.trim());
     } catch (err) {
       setError("Failed to fetch invoice data: " + err.message);
@@ -41,9 +44,42 @@ const AdminScanQR = () => {
     }
   };
 
+  const markAsDelivered = async () => {
+    if (!invoice || !invoice.id) return;
+    
+    try {
+      setUpdating(true);
+      setError(null);
+      setSuccessMessage(null);
+      
+      // Reference to the invoice document
+      const invoiceRef = doc(db, "invoices", invoice.id);
+      
+      // Update the invoice status to "Delivered"
+      await updateDoc(invoiceRef, {
+        orderStatus: "Delivered",
+        deliveredAt: new Date()
+      });
+      
+      // Update the local state
+      setInvoice(prev => ({
+        ...prev,
+        orderStatus: "Delivered",
+        deliveredAt: new Date()
+      }));
+      
+      setSuccessMessage("Order has been marked as delivered!");
+    } catch (err) {
+      setError("Failed to update order status: " + err.message);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   const resetSearch = () => {
     setInvoice(null);
     setError(null);
+    setSuccessMessage(null);
     setInvoiceId("");
   };
 
@@ -57,6 +93,15 @@ const AdminScanQR = () => {
     } catch (e) {
       return String(timestamp);
     }
+  };
+
+  const isOrderDeliverable = () => {
+    // Check if order can be marked as delivered
+    // Only allow delivery if order is not already delivered
+    return (
+      invoice && 
+      invoice.orderStatus !== "Delivered"
+    );
   };
 
   return (
@@ -119,12 +164,66 @@ const AdminScanQR = () => {
                   <p>{error}</p>
                 </div>
               )}
+
+              {successMessage && (
+                <div className="bg-green-900/30 border border-green-500/50 p-4 rounded-md flex items-center mb-4">
+                  <FiCheckCircle className="text-green-500 mr-3 text-xl" />
+                  <p>{successMessage}</p>
+                </div>
+              )}
               
               {invoice && (
                 <div className="mt-4">
                   <div className="bg-green-900/20 border border-green-500/30 p-3 rounded-md flex items-center mb-6">
                     <FiCheckCircle className="text-green-500 mr-3 text-xl" />
                     <p>Invoice found! Displaying details below.</p>
+                  </div>
+                  
+                  {/* Order Action Button */}
+                  <div className="mb-6">
+                    <div className="flex flex-col sm:flex-row items-center justify-between bg-gray-800/50 p-4 rounded-md">
+                      <div className="mb-3 sm:mb-0">
+                        <h3 className="font-bold text-blue-400">Order Status</h3>
+                        <div className="flex items-center mt-1">
+                          <span className={`px-3 py-1 rounded ${
+                            invoice.orderStatus === "Delivered" 
+                            ? "bg-green-500/20 text-green-300" 
+                            : invoice.orderStatus === "Processing"
+                              ? "bg-blue-500/20 text-blue-300"
+                              : "bg-yellow-500/20 text-yellow-300"
+                          }`}>
+                            {invoice.orderStatus || "Pending"}
+                          </span>
+                          {invoice.deliveredAt && (
+                            <span className="text-xs text-gray-400 ml-2">
+                              ({formatDate(invoice.deliveredAt)})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <button
+                        onClick={markAsDelivered}
+                        disabled={!isOrderDeliverable() || updating}
+                        className={`px-4 py-2 rounded-md flex items-center ${
+                          isOrderDeliverable() && !updating
+                            ? "bg-green-600 hover:bg-green-700"
+                            : "bg-gray-700 cursor-not-allowed opacity-60"
+                        } transition`}
+                      >
+                        {updating ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                            Updating...
+                          </>
+                        ) : (
+                          <>
+                            <FiPackage className="mr-2" />
+                            Mark Order as Delivered
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -185,18 +284,7 @@ const AdminScanQR = () => {
                           <span className="text-gray-400 text-sm">Created:</span>
                           <p>{formatDate(invoice.createdAt)}</p>
                         </div>
-                        <div>
-                          <span className="text-gray-400 text-sm">Payment Status:</span>
-                          <span className={`px-2 py-1 rounded text-xs ml-2 ${
-                            invoice.paymentStatus === "Pending" 
-                              ? "bg-yellow-500/20 text-yellow-300" 
-                              : invoice.paymentStatus === "Paid" || invoice.paymentStatus === "Completed"
-                                ? "bg-green-500/20 text-green-300"
-                                : "bg-gray-500/20 text-gray-300"
-                          }`}>
-                            {invoice.paymentStatus || "Unknown"}
-                          </span>
-                        </div>
+
                         {invoice.paymentId && (
                           <div>
                             <span className="text-gray-400 text-sm">Payment ID:</span>
