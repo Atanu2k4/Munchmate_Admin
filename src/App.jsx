@@ -6,6 +6,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import AdminNav from "./components/AdminNav";
 import AdminMenu from "./components/AdminMenu";
 import AdminScanQR from "./components/AdminScanQR";
+import AdminOrders from "./components/AdminOrders";
 
 function App() {
   return (
@@ -22,12 +23,7 @@ function App() {
           <Route path="/admin/menu" element={<AdminMenu />} />
           <Route
             path="/admin/orders"
-            element={
-              <div className="container mx-auto py-20 px-6">
-                <h2 className="text-2xl font-bold">Orders Management</h2>
-                <p className="mt-4">Orders management coming soon...</p>
-              </div>
-            }
+            element={<AdminOrders />}
           />
           <Route path="/admin/scan" element={<AdminScanQR />} />
           <Route
