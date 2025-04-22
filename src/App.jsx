@@ -5,6 +5,7 @@ import "./App.css";
 import { Routes, Route, Navigate } from "react-router-dom";
 import AdminNav from "./components/AdminNav";
 import AdminMenu from "./components/AdminMenu";
+import AdminScanQR from "./components/AdminScanQR";
 
 function App() {
   return (
@@ -28,15 +29,7 @@ function App() {
               </div>
             }
           />
-          <Route
-            path="/admin/scan"
-            element={
-              <div className="container mx-auto py-20 px-6">
-                <h2 className="text-2xl font-bold">Scan QR Code</h2>
-                <p className="mt-4">QR code scanning coming soon...</p>
-              </div>
-            }
-          />
+          <Route path="/admin/scan" element={<AdminScanQR />} />
           <Route
             path="/admin/profile"
             element={
