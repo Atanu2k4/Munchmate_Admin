@@ -4,7 +4,6 @@ import {
   FiFilter,
   FiRefreshCw,
   FiEye,
-  FiTruck,
   FiCheck,
   FiClock,
   FiX,
@@ -51,9 +50,9 @@ const AdminOrders = () => {
       const invoicesRef = collection(db, "invoices");
       let q = query(invoicesRef, orderBy("date", "desc"), limit(10));
       
-      // Apply filters
+      // Apply filters - only "Delivered" and "Not Delivered" statuses
       if (statusFilter !== "all") {
-        q = query(q, where("deliveryStatus", "==", statusFilter));
+        q = query(q, where("orderStatus", "==", statusFilter));
       }
       
       if (dateFilter !== "all") {
@@ -86,7 +85,34 @@ const AdminOrders = () => {
       
       const fetchedOrders = [];
       querySnapshot.forEach((doc) => {
-        fetchedOrders.push({ id: doc.id, ...doc.data() });
+        const data = doc.data();
+        
+        // Format date properly
+        let formattedDate = "N/A";
+        if (data.date && data.date.seconds) {
+          const dateObj = new Date(data.date.seconds * 1000);
+          formattedDate = dateObj.toLocaleDateString();
+        }
+        
+        // Ensure customer data exists
+        const customer = data.customer || { name: "Guest", email: "No email" };
+        
+        // Ensure items and total amount are handled properly
+        const items = data.items || [];
+        const totalAmount = data.totalAmount || 0;
+        
+        // Use orderStatus field from Firestore instead of deliveryStatus
+        let deliveryStatus = data.orderStatus || "Not Delivered";
+        
+        fetchedOrders.push({ 
+          id: doc.id, 
+          ...data,
+          formattedDate,
+          customer,
+          items,
+          totalAmount,
+          deliveryStatus
+        });
       });
       
       // Update state based on whether we're loading more or refreshing
@@ -127,23 +153,27 @@ const AdminOrders = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // In a real implementation, you'd need to implement server-side search
-    // For now, just filter the existing orders client-side
-    setOrders(orders.filter(order => 
-      order.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customer?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customer?.email?.toLowerCase().includes(searchQuery.toLowerCase())
-    ));
+    // Reset pagination when searching
+    setLastVisible(null);
+    
+    // Client-side filtering as fallback
+    if (searchQuery) {
+      const lowercaseQuery = searchQuery.toLowerCase();
+      const filtered = orders.filter(order => 
+        order.invoiceNumber?.toLowerCase().includes(lowercaseQuery) ||
+        order.customer?.name?.toLowerCase().includes(lowercaseQuery) ||
+        order.customer?.email?.toLowerCase().includes(lowercaseQuery)
+      );
+      setOrders(filtered);
+    } else {
+      // If search query is cleared, re-fetch all orders
+      fetchOrders();
+    }
   };
 
   const getStatusIcon = (status) => {
-    const statusLower = status.toLowerCase();
-    if (statusLower.includes("delivered") || statusLower.includes("completed")) {
+    if (status === "Delivered") {
       return <FiCheck className="text-green-500" />;
-    } else if (statusLower.includes("transit") || statusLower.includes("progress")) {
-      return <FiTruck className="text-blue-500" />;
-    } else if (statusLower.includes("cancelled") || statusLower.includes("failed")) {
-      return <FiX className="text-red-500" />;
     } else {
       return <FiClock className="text-yellow-500" />;
     }
@@ -187,9 +217,7 @@ const AdminOrders = () => {
                 >
                   <option value="all">All Status</option>
                   <option value="Not Delivered">Not Delivered</option>
-                  <option value="In Transit">In Transit</option>
                   <option value="Delivered">Delivered</option>
-                  <option value="Cancelled">Cancelled</option>
                 </select>
                 <FiFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
               </div>
@@ -271,7 +299,7 @@ const AdminOrders = () => {
                     orders.map((order) => (
                       <tr key={order.id} className="border-b border-gray-800 hover:bg-gray-800/30">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="font-medium text-blue-400">{order.invoiceNumber}</span>
+                          <span className="font-medium text-blue-400">{order.invoiceNumber || "N/A"}</span>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center">
@@ -285,18 +313,20 @@ const AdminOrders = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-300">
-                          {order.formattedDate || 
-                            (order.date && new Date(order.date.seconds * 1000).toLocaleDateString())}
+                          {order.formattedDate}
                         </td>
                         <td className="px-6 py-4 text-center text-sm text-gray-300">
                           {order.items?.length || 0}
                         </td>
                         <td className="px-6 py-4 text-right whitespace-nowrap">
-                          <span className="font-medium text-white">₹{order.totalAmount?.toFixed(2)}</span>
+                          <span className="font-medium text-white">₹{order.totalAmount?.toFixed(2) || "0.00"}</span>
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-                            bg-opacity-10 border">
+                          <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
+                            ${order.deliveryStatus === "Delivered" 
+                              ? "bg-green-500/10 border-green-500/30 text-green-400" 
+                              : "bg-yellow-500/10 border-yellow-500/30 text-yellow-400"} 
+                            bg-opacity-10 border`}>
                             <span className="mr-1">{getStatusIcon(order.deliveryStatus)}</span>
                             <span>
                               {order.deliveryStatus}
