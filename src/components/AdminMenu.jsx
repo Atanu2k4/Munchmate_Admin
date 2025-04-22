@@ -9,6 +9,18 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import axios from "axios";
+import {
+  FiPlus,
+  FiEdit,
+  FiTrash2,
+  FiCheckCircle,
+  FiXCircle,
+  FiImage,
+  FiMenu,
+  FiStar,
+  FiTrendingUp,
+  FiCoffee,
+} from "react-icons/fi";
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dfcvgpw8n/image/upload";
 const UPLOAD_PRESET = "MunchMate";
@@ -21,7 +33,8 @@ const AdminMenu = () => {
   const [uploading, setUploading] = useState(false);
   const [editing, setEditing] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isAvailable, setIsAvailable] = useState(false); // Default: not available
+  const [isAvailable, setIsAvailable] = useState(false);
+  const [formVisible, setFormVisible] = useState(false);
 
   useEffect(() => {
     fetchMenuItems();
@@ -72,7 +85,6 @@ const AdminMenu = () => {
 
     try {
       if (editing) {
-        // Update existing item
         await updateDoc(doc(db, "menu", editing), {
           name,
           price: Number(price),
@@ -81,22 +93,19 @@ const AdminMenu = () => {
         });
         setEditing(null);
       } else {
-        // Add new item
         await addDoc(collection(db, "menu"), {
           name,
           price: Number(price),
           image,
-          isAvailable: false, // Default to not available
+          isAvailable: false,
         });
       }
 
-      // Reset form
       setName("");
       setPrice("");
       setImage(null);
       setIsAvailable(false);
-
-      // Refresh menu items
+      setFormVisible(false);
       fetchMenuItems();
     } catch (error) {
       console.error("Error saving menu item:", error);
@@ -110,6 +119,7 @@ const AdminMenu = () => {
     setPrice(item.price);
     setImage(item.image);
     setIsAvailable(item.isAvailable !== undefined ? item.isAvailable : false);
+    setFormVisible(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -143,159 +153,329 @@ const AdminMenu = () => {
     setPrice("");
     setImage(null);
     setIsAvailable(false);
+    setFormVisible(false);
   };
 
   return (
-    <div className="bg-black text-white min-h-screen">
-      {/* White glowing dot in top-right corner */}
-      <div className="fixed top-6 right-6 w-3 h-3 bg-white rounded-full shadow-[0_0_10px_5px_rgba(255,255,255,0.7)]"></div>
+    <div className="bg-black text-white min-h-screen relative overflow-hidden">
+      {/* Enhanced background effects */}
+      <div className="fixed inset-0 bg-black opacity-20 z-0"></div>
 
-      <div className="container mx-auto py-20 px-6">
-        <h2 className="text-2xl font-bold mb-6">Menu Management</h2>
+      {/* Abstract geometric shapes */}
+      <div className="fixed top-40 left-10 w-64 h-64 rounded-full border border-[#302b63]/20 animate-pulse z-0"></div>
+      <div
+        className="fixed bottom-20 right-10 w-80 h-80 rounded-full border border-[#302b63]/10 animate-pulse z-0"
+        style={{ animationDuration: "10s" }}
+      ></div>
+      <div
+        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full border border-[#302b63]/5 animate-pulse z-0"
+        style={{ animationDuration: "15s" }}
+      ></div>
 
-        {/* Form section */}
-        <div className="bg-gray-900 p-6 rounded-lg shadow-md mb-8 border border-gray-700">
-          <h3 className="text-xl font-semibold mb-4">
-            {editing ? "Edit Menu Item" : "Add New Menu Item"}
-          </h3>
+      {/* Subtle star-like dots */}
+      <div className="fixed top-20 left-40 w-1 h-1 rounded-full bg-white opacity-50 z-0"></div>
+      <div className="fixed top-32 right-96 w-1 h-1 rounded-full bg-white opacity-50 z-0"></div>
+      <div className="fixed bottom-40 left-80 w-1 h-1 rounded-full bg-white opacity-50 z-0"></div>
+      <div className="fixed top-80 right-20 w-2 h-2 rounded-full bg-white opacity-30 z-0"></div>
+      <div className="fixed bottom-20 left-20 w-2 h-2 rounded-full bg-white opacity-30 z-0"></div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="container mx-auto py-20 px-4 relative z-10">
+        {/* Header Section - Enhanced with icon */}
+        <div className="flex justify-between items-center mb-12">
+          <div className="flex items-center">
+            <div className="bg-[#302b63] rounded-xl p-3 shadow-lg shadow-[#302b63]/30 mr-4">
+              <FiMenu size={24} className="text-white" />
+            </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Item Name
-              </label>
-              <input
-                type="text"
-                placeholder="Item Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full border bg-gray-800 border-gray-700 rounded p-2 text-white"
-                required
-              />
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-white via-[#302b63] to-[#24243e] bg-clip-text text-transparent">
+                Menu Management
+              </h2>
+              <p className="text-gray-400 mt-2 flex items-center">
+                <FiCoffee className="mr-2" /> Add, update and manage your
+                restaurant's menu items
+              </p>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Price ($)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="Price"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="w-full border bg-gray-800 border-gray-700 rounded p-2 text-white"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Image</label>
-              <input
-                type="file"
-                onChange={(e) => handleImageUpload(e.target.files[0])}
-                className="w-full border bg-gray-800 border-gray-700 rounded p-2 text-white file:bg-gray-700 file:text-white file:border-0 file:p-1 file:rounded"
-              />
-            </div>
-
-            {image && (
-              <div className="mt-2">
-                <p className="text-sm text-gray-300 mb-1">Preview:</p>
-                <img
-                  src={image}
-                  alt="Preview"
-                  className="w-32 h-32 object-cover rounded"
-                />
-              </div>
-            )}
-
-            <div>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isAvailable}
-                  onChange={() => setIsAvailable(!isAvailable)}
-                  className="w-4 h-4"
-                />
-                <span className="text-sm font-medium">Available for Order</span>
-              </label>
-            </div>
-
-            {uploading && <p className="text-blue-400">Uploading image...</p>}
-
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:opacity-50 font-bold"
-                disabled={uploading}
-              >
-                {editing ? "Update Item" : "Add Item"}
-              </button>
-
-              {editing && (
-                <button
-                  type="button"
-                  onClick={cancelEdit}
-                  className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded font-bold"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </form>
+          </div>
+          <button
+            onClick={() => {
+              cancelEdit();
+              setFormVisible(!formVisible);
+            }}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-full font-bold transition-all duration-300 ${
+              formVisible
+                ? "bg-gray-800 hover:bg-gray-700 text-gray-300"
+                : "bg-gradient-to-r from-[#0f0c29] to-[#302b63] hover:from-[#24243e] hover:to-[#302b63] text-white shadow-lg shadow-[#302b63]/30 ring-1 ring-[#302b63]/50"
+            }`}
+          >
+            <FiPlus size={18} />
+            <span>{formVisible ? "Cancel" : "Add New Item"}</span>
+          </button>
         </div>
 
-        {/* Menu items list */}
-        <h3 className="text-xl font-semibold mb-4">Current Menu Items</h3>
+        {/* Form section - Collapsible with enhanced styling */}
+        {formVisible && (
+          <div className="bg-black p-8 rounded-xl shadow-xl mb-12 border border-[#302b63]/50 relative overflow-hidden backdrop-blur-sm">
+            {/* Enhanced decoration elements */}
+            <div className="absolute -top-10 -right-10 w-60 h-60 bg-[#302b63]/20 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-[#24243e]/20 rounded-full blur-3xl"></div>
+            <div className="absolute top-1/2 left-1/3 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-[#302b63]/10 rounded-full blur-2xl"></div>
+
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-white via-[#302b63] to-[#24243e] bg-clip-text text-transparent mb-8 flex items-center">
+              {editing ? (
+                <FiEdit size={24} className="mr-2 text-[#302b63]" />
+              ) : (
+                <FiPlus size={24} className="mr-2 text-[#302b63]" />
+              )}
+              {editing ? "Edit Menu Item" : "Add New Menu Item"}
+            </h3>
+
+            <form
+              onSubmit={handleSubmit}
+              className="grid grid-cols-1 md:grid-cols-2 gap-8 relative"
+            >
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Item Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Item Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full border bg-black/30 border-[#302b63]/50 rounded-lg p-3 text-white focus:border-[#302b63] focus:ring-2 focus:ring-[#302b63]/50 outline-none transition backdrop-blur-sm"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Price (₹)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Price in Rupees"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="w-full border bg-black/30 border-[#302b63]/50 rounded-lg p-3 text-white focus:border-[#302b63] focus:ring-2 focus:ring-[#302b63]/50 outline-none transition backdrop-blur-sm"
+                    required
+                  />
+                </div>
+
+                <div className="flex items-center bg-black/20 p-4 rounded-lg border border-[#302b63]/30">
+                  <label className="flex items-center cursor-pointer space-x-3 w-full">
+                    <div
+                      className={`w-12 h-6 flex items-center rounded-full p-1 duration-300 ease-in-out ${
+                        isAvailable ? "bg-[#302b63]" : "bg-[#24243e]"
+                      }`}
+                    >
+                      <div
+                        className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${
+                          isAvailable ? "translate-x-6" : ""
+                        }`}
+                      ></div>
+                    </div>
+                    <span className="text-sm font-medium text-gray-300">
+                      Available for Order
+                    </span>
+                  </label>
+                  <input
+                    type="checkbox"
+                    checked={isAvailable}
+                    onChange={() => setIsAvailable(!isAvailable)}
+                    className="hidden"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Image
+                  </label>
+                  <div className="border-2 border-dashed border-[#302b63]/50 rounded-lg p-4 text-center bg-black/20 transition-all hover:border-[#302b63] hover:bg-black/30">
+                    {image ? (
+                      <div className="relative">
+                        <img
+                          src={image}
+                          alt="Preview"
+                          className="mx-auto h-48 object-cover rounded shadow-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setImage(null)}
+                          className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                        >
+                          <FiXCircle />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-48">
+                        <FiImage size={40} className="text-[#302b63]/70 mb-2" />
+                        <p className="text-sm text-gray-400">
+                          Click to upload an image
+                        </p>
+                        {uploading && (
+                          <div className="mt-2 flex items-center">
+                            <div className="w-4 h-4 border-2 border-t-[#302b63] border-[#302b63]/30 rounded-full animate-spin mr-2"></div>
+                            <p className="text-[#302b63]">Uploading...</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      onChange={(e) => handleImageUpload(e.target.files[0])}
+                      className={`absolute inset-0 w-full h-full opacity-0 cursor-pointer ${
+                        image ? "hidden" : ""
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 self-end mt-auto">
+                  <button
+                    type="submit"
+                    className="bg-gradient-to-r from-[#0f0c29] to-[#302b63] hover:from-[#24243e] hover:to-[#302b63] text-white px-6 py-3 rounded-lg disabled:opacity-50 font-bold flex items-center space-x-2 shadow-lg shadow-[#302b63]/30 transition border border-[#302b63]/30"
+                    disabled={uploading}
+                  >
+                    {editing ? (
+                      <>
+                        <FiEdit size={18} />
+                        <span>Update Item</span>
+                      </>
+                    ) : (
+                      <>
+                        <FiPlus size={18} />
+                        <span>Add Item</span>
+                      </>
+                    )}
+                  </button>
+
+                  {editing && (
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      className="bg-gray-800/70 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-bold flex items-center space-x-2 border border-gray-700"
+                    >
+                      <FiXCircle size={18} />
+                      <span>Cancel</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Menu items list - Enhanced with glowing effect */}
+        <div className="mb-8">
+          <div className="flex items-center">
+            <FiTrendingUp size={24} className="text-[#302b63] mr-3" />
+            <h3 className="text-2xl font-bold">Current Menu</h3>
+          </div>
+          <div className="h-1 w-20 bg-gradient-to-r from-[#0f0c29] via-[#302b63] to-[#24243e] rounded-full mb-8 mt-2"></div>
+        </div>
 
         {loading ? (
-          <p>Loading menu items...</p>
+          <div className="flex flex-col items-center justify-center p-12 border border-[#302b63]/30 rounded-xl bg-black backdrop-blur-sm">
+            <div className="w-12 h-12 border-4 border-t-[#302b63] border-[#302b63]/20 rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-400">Loading menu items...</p>
+          </div>
         ) : menuItems.length === 0 ? (
-          <p>No menu items available. Add your first item above.</p>
+          <div className="text-center p-12 border border-[#302b63]/30 rounded-xl bg-black backdrop-blur-sm">
+            <div className="inline-flex h-20 w-20 rounded-full bg-[#302b63]/20 items-center justify-center mb-6">
+              <FiPlus size={40} className="text-gray-400" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-300 mb-2">
+              No menu items yet
+            </h3>
+            <p className="text-gray-500 mb-6">
+              Get started by adding your first menu item
+            </p>
+            <button
+              onClick={() => setFormVisible(true)}
+              className="bg-gradient-to-r from-[#0f0c29] to-[#302b63] hover:from-[#24243e] hover:to-[#302b63] text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-[#302b63]/30 border border-[#302b63]/30"
+            >
+              Add First Item
+            </button>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {menuItems.map((item) => (
               <div
                 key={item.id}
-                className="border border-gray-700 rounded-lg overflow-hidden shadow-md bg-gray-900"
+                className="group relative bg-black border border-[#302b63]/30 rounded-xl overflow-hidden shadow-xl transition-all hover:shadow-[#302b63]/40 hover:-translate-y-1 duration-300"
               >
-                <div className="h-40 overflow-hidden">
+                {/* Glow effect on hover */}
+                <div className="absolute inset-0 bg-[#302b63]/0 group-hover:bg-[#302b63]/5 transition-colors duration-300"></div>
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-[#0f0c29] to-[#302b63] rounded-xl opacity-0 group-hover:opacity-30 blur group-hover:blur-sm transition duration-300"></div>
+
+                <div className="h-48 overflow-hidden relative">
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0f0c29] via-transparent to-transparent opacity-70"></div>
+
+                  {item.isAvailable && (
+                    <div className="absolute top-2 right-2 bg-[#302b63]/80 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                      <FiStar size={12} className="mr-1" />
+                      Available
+                    </div>
+                  )}
                 </div>
-                <div className="p-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-bold">{item.name}</h3>
+
+                <div className="p-5 relative z-10">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="text-xl font-bold">{item.name}</h3>
+                    <span className="text-xl font-bold text-white">
+                      ₹{item.price}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between mt-4">
                     <button
                       onClick={() =>
                         toggleAvailability(item.id, item.isAvailable)
                       }
-                      className={`px-3 py-1 rounded-full text-xs font-medium flex items-center ${
+                      className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors ${
                         item.isAvailable
-                          ? "bg-green-500 text-white"
-                          : "bg-red-500 text-white"
+                          ? "bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/30"
+                          : "bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30"
                       }`}
                     >
-                      {item.isAvailable ? "Available" : "Not Available"}
+                      {item.isAvailable ? (
+                        <>
+                          <FiCheckCircle size={16} />
+                          <span>Available</span>
+                        </>
+                      ) : (
+                        <>
+                          <FiXCircle size={16} />
+                          <span>Unavailable</span>
+                        </>
+                      )}
                     </button>
-                  </div>
-                  <p className="text-gray-300">${item.price}</p>
-                  <div className="flex gap-2 mt-3">
-                    <button
-                      onClick={() => handleEdit(item)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded font-bold"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded font-bold"
-                    >
-                      Delete
-                    </button>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(item)}
+                        className="bg-[#302b63]/20 hover:bg-[#302b63]/30 text-[#302b63] p-2 rounded-lg transition-colors border border-[#302b63]/30"
+                        title="Edit"
+                      >
+                        <FiEdit size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="bg-red-600/20 hover:bg-red-600/30 text-red-400 p-2 rounded-lg transition-colors border border-red-600/30"
+                        title="Delete"
+                      >
+                        <FiTrash2 size={18} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
