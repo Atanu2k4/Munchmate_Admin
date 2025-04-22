@@ -105,7 +105,7 @@ const AdminMenu = () => {
           name,
           price: Number(price),
           image,
-          isAvailable: false,
+          isAvailable,
         });
       }
 
@@ -162,6 +162,11 @@ const AdminMenu = () => {
     setImage(null);
     setIsAvailable(false);
     setFormVisible(false);
+  };
+
+  // Function to handle toggle click
+  const handleToggleClick = () => {
+    setIsAvailable(!isAvailable);
   };
 
   return (
@@ -271,12 +276,14 @@ const AdminMenu = () => {
                   />
                 </div>
 
+                {/* Fixed Available for Order toggle */}
                 <div className="flex items-center bg-black/20 p-4 rounded-lg border border-[#302b63]/30">
                   <label className="flex items-center cursor-pointer space-x-3 w-full">
                     <div
                       className={`w-12 h-6 flex items-center rounded-full p-1 duration-300 ease-in-out ${
                         isAvailable ? "bg-[#302b63]" : "bg-[#24243e]"
                       }`}
+                      onClick={handleToggleClick}
                     >
                       <div
                         className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${
