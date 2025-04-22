@@ -27,6 +27,7 @@ const AdminNavbar = () => {
     { name: "Menu", icon: <FiBookOpen />, path: "/admin/menu" },
     { name: "Orders", icon: <FiList />, path: "/admin/orders" },
     { name: "Scan QR", icon: <FiCamera />, path: "/admin/scan" },
+    { name: "Profile", icon: <FiUser />, path: "/admin/profile" },
   ];
 
   const handleNavigation = (itemName, path) => {
@@ -36,123 +37,113 @@ const AdminNavbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-black border-b border-white/10">
-      {/* Top highlight line */}
-      <div className="h-1 w-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+    <nav className="fixed top-0 left-0 w-full z-50 bg-black shadow-lg shadow-purple-900/10">
+      {/* Purple accent line */}
+      <div className="h-0.5 w-full bg-gradient-to-r from-purple-900 via-purple-600 to-purple-900"></div>
 
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+          {/* Logo with black and purple style */}
           <div onClick={() => navigate("/")} className="cursor-pointer">
             <span className="text-xl font-bold flex items-center">
-              <div className="mr-2 h-6 w-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-600"></div>
-              <span className="text-white">
-                Munch<span className="text-blue-400">Mate</span>
+              <span className="text-white font-extrabold tracking-wide">
+                MUNCH
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-purple-300">
+                  MATE
+                </span>
               </span>
-              <span className="text-xs ml-2 text-white border-l border-white/30 pl-2">
-                ADMIN
-              </span>
+              <div className="ml-3 px-2 py-0.5 rounded-md bg-black border border-purple-500/50 shadow-md shadow-purple-500/20">
+                <span className="text-xs text-purple-400 font-medium tracking-wider">
+                  ADMIN
+                </span>
+              </div>
             </span>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-1">
             {menuItems.map((item) => (
               <a
                 key={item.name}
                 onClick={() => handleNavigation(item.name, item.path)}
-                className={`flex items-center space-x-2 cursor-pointer relative py-5 font-bold group ${
+                className={`group relative flex items-center space-x-2 cursor-pointer px-4 py-2 rounded-md transition-colors duration-200 ${
                   activeItem === item.name
                     ? "text-white"
                     : "text-gray-400 hover:text-white"
                 }`}
               >
-                <span
-                  className={`text-lg ${
-                    activeItem === item.name
-                      ? "text-blue-400"
-                      : "text-gray-400 group-hover:text-blue-400"
-                  }`}
-                >
-                  {item.icon}
-                </span>
-                <span>{item.name}</span>
+                {/* Active item background effect - properly aligned */}
                 {activeItem === item.name && (
-                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 to-purple-500"></span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-black to-purple-900/30 border border-purple-500/20 rounded-md"></div>
                 )}
+
+                {/* Hover effect - properly aligned at bottom */}
+                <div
+                  className={`absolute bottom-0 left-0 right-0 h-0.5 transform transition-transform duration-300 ${
+                    activeItem === item.name
+                      ? "bg-gradient-to-r from-purple-800 to-purple-500"
+                      : "bg-gradient-to-r from-purple-800 to-purple-500 scale-x-0 group-hover:scale-x-100 origin-left"
+                  }`}
+                ></div>
+
+                {/* Ensure content is centered and aligned */}
+                <div className="flex items-center space-x-2 relative z-10">
+                  <span
+                    className={`text-lg ${
+                      activeItem === item.name ? "text-purple-400" : ""
+                    }`}
+                  >
+                    {item.icon}
+                  </span>
+                  <span className="font-medium">{item.name}</span>
+                </div>
               </a>
             ))}
-
-            {/* Admin button */}
-            <button
-              onClick={() => navigate("/admin/profile")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-md font-bold ${
-                activeItem === "Profile"
-                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
-                  : "bg-black text-white border border-blue-500/30 hover:border-blue-500/60"
-              }`}
-            >
-              <FiUser
-                className={
-                  activeItem === "Profile" ? "text-white" : "text-blue-400"
-                }
-              />
-              <span>Admin</span>
-            </button>
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-white p-2 rounded-md bg-black/40 border border-white/10"
+              className="p-2 rounded-md text-gray-300 hover:bg-purple-900/20 hover:text-white transition-colors border border-purple-500/20"
             >
-              {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+              {isOpen ? <FiX size={22} /> : <FiMenu size={22} />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile menu - Slide down animation could be added */}
-      {isOpen && (
-        <div className="md:hidden bg-gradient-to-b from-black to-gray-900 px-2 pt-2 pb-3 space-y-1 shadow-lg">
+      {/* Mobile Menu */}
+      <div
+        className={`md:hidden absolute w-full transform transition-all duration-300 ease-in-out ${
+          isOpen
+            ? "translate-y-0 opacity-100"
+            : "-translate-y-full opacity-0 pointer-events-none"
+        }`}
+      >
+        <div className="bg-black/95 backdrop-blur-sm border-t border-purple-500/20 px-4 py-2 shadow-lg">
           {menuItems.map((item) => (
             <a
               key={item.name}
               onClick={() => handleNavigation(item.name, item.path)}
-              className={`block px-3 py-3 rounded-md text-base font-bold cursor-pointer ${
+              className={`flex items-center px-4 py-3 my-1 rounded-md cursor-pointer transition-all duration-200 ${
                 activeItem === item.name
-                  ? "bg-gradient-to-r from-blue-900/30 to-purple-900/30 text-white border-l-4 border-blue-500"
-                  : "text-gray-300 hover:bg-gray-900/50 hover:text-white"
+                  ? "bg-gradient-to-r from-black to-purple-900/30 text-white border border-purple-500/20"
+                  : "text-gray-400 hover:bg-purple-900/10 hover:text-white"
               }`}
             >
-              <div className="flex items-center space-x-3">
-                <span
-                  className={activeItem === item.name ? "text-blue-400" : ""}
-                >
-                  {item.icon}
-                </span>
-                <span>{item.name}</span>
-              </div>
+              <span
+                className={`mr-3 ${
+                  activeItem === item.name ? "text-purple-400" : ""
+                }`}
+              >
+                {item.icon}
+              </span>
+              <span className="font-medium">{item.name}</span>
             </a>
           ))}
-          <a
-            onClick={() => navigate("/admin/profile")}
-            className={`block px-3 py-3 rounded-md text-base font-bold cursor-pointer ${
-              activeItem === "Profile"
-                ? "bg-gradient-to-r from-blue-900/30 to-purple-900/30 text-white border-l-4 border-blue-500"
-                : "text-gray-300 hover:bg-gray-900/50 hover:text-white"
-            }`}
-          >
-            <div className="flex items-center space-x-3">
-              <FiUser
-                className={activeItem === "Profile" ? "text-blue-400" : ""}
-              />
-              <span>Admin Profile</span>
-            </div>
-          </a>
         </div>
-      )}
+      </div>
     </nav>
   );
 };

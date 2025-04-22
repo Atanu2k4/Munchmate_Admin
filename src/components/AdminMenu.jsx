@@ -62,11 +62,19 @@ const AdminMenu = () => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", UPLOAD_PRESET);
+    formData.append("quality", "auto:best");
+    formData.append("fetch_format", "auto");
+    formData.append("flags", "preserve_transparency");
 
     setUploading(true);
     try {
       const res = await axios.post(CLOUDINARY_URL, formData);
-      setImage(res.data.secure_url);
+      // Get the URL and add quality parameters
+      const optimizedUrl = res.data.secure_url.replace(
+        "/upload/",
+        "/upload/q_auto,f_auto,c_limit,w_1000,h_1000/"
+      );
+      setImage(optimizedUrl);
     } catch (error) {
       console.error("Error uploading image:", error);
       alert("Failed to upload image. Please try again.");
@@ -406,55 +414,76 @@ const AdminMenu = () => {
             {menuItems.map((item) => (
               <div
                 key={item.id}
-                className="group relative bg-black border border-[#302b63]/30 rounded-xl overflow-hidden shadow-xl transition-all hover:shadow-[#302b63]/40 hover:-translate-y-1 duration-300"
+                className="group relative bg-black/60 backdrop-blur-sm border border-[#302b63]/30 rounded-xl overflow-hidden shadow-xl transition-all hover:shadow-[#302b63]/40 hover:-translate-y-1 duration-300"
               >
-                {/* Glow effect on hover */}
-                <div className="absolute inset-0 bg-[#302b63]/0 group-hover:bg-[#302b63]/5 transition-colors duration-300"></div>
+                {/* Card glow effects */}
+                <div className="absolute inset-0 bg-gradient-to-br from-[#302b63]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-[#0f0c29] to-[#302b63] rounded-xl opacity-0 group-hover:opacity-30 blur group-hover:blur-sm transition duration-300"></div>
 
-                <div className="h-48 overflow-hidden relative">
+                {/* Enhanced image container with better hover effects */}
+                <div className="relative h-48 overflow-hidden rounded-t-xl">
+                  <div className="absolute inset-0 bg-black/20 z-10 transition-opacity duration-300 group-hover:opacity-0"></div>
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500"
+                    className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110"
+                    style={{
+                      objectPosition: "center",
+                      imageRendering: "auto",
+                      backfaceVisibility: "hidden",
+                      transform: "translateZ(0)",
+                      willChange: "transform",
+                      filter: "none",
+                    }}
+                    loading="lazy"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.style.filter = "blur(0px)";
+                    }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0f0c29] via-transparent to-transparent opacity-70"></div>
+                  {/* Enhanced gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-80 z-[1]"></div>
 
+                  {/* Status badge with improved visibility and animation */}
                   {item.isAvailable && (
-                    <div className="absolute top-2 right-2 bg-[#302b63]/80 text-white text-xs px-2 py-1 rounded-full flex items-center">
-                      <FiStar size={12} className="mr-1" />
-                      Available
+                    <div className="absolute top-3 right-3 bg-[#302b63]/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-full flex items-center shadow-lg z-20 transform transition-transform duration-300 group-hover:scale-105">
+                      <FiStar size={14} className="mr-1.5 text-yellow-300" />
+                      <span className="text-sm font-medium">Available</span>
                     </div>
                   )}
-                </div>
 
-                <div className="p-5 relative z-10">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-xl font-bold">{item.name}</h3>
-                    <span className="text-xl font-bold text-white">
+                  {/* Item name overlay positioned over the image */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
+                    <h3 className="text-xl font-bold text-white leading-tight drop-shadow-lg">
+                      {item.name}
+                    </h3>
+                    <span className="inline-block mt-1 text-2xl font-bold text-white drop-shadow-lg">
                       ₹{item.price}
                     </span>
                   </div>
+                </div>
 
-                  <div className="flex justify-between mt-4">
+                {/* Action buttons with enhanced styling */}
+                <div className="p-4 bg-black/40 backdrop-blur-sm border-t border-[#302b63]/20">
+                  <div className="flex items-center justify-between gap-4">
                     <button
                       onClick={() =>
                         toggleAvailability(item.id, item.isAvailable)
                       }
-                      className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors ${
+                      className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-all duration-300 flex-1 justify-center ${
                         item.isAvailable
-                          ? "bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/30"
-                          : "bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30"
+                          ? "bg-green-500/20 text-green-300 hover:bg-green-500/30 border border-green-500/30 hover:shadow-green-500/20 hover:shadow-lg"
+                          : "bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 hover:shadow-red-500/20 hover:shadow-lg"
                       }`}
                     >
                       {item.isAvailable ? (
                         <>
-                          <FiCheckCircle size={16} />
+                          <FiCheckCircle size={16} className="text-green-300" />
                           <span>Available</span>
                         </>
                       ) : (
                         <>
-                          <FiXCircle size={16} />
+                          <FiXCircle size={16} className="text-red-300" />
                           <span>Unavailable</span>
                         </>
                       )}
@@ -463,17 +492,23 @@ const AdminMenu = () => {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEdit(item)}
-                        className="bg-[#302b63]/20 hover:bg-[#302b63]/30 text-[#302b63] p-2 rounded-lg transition-colors border border-[#302b63]/30"
+                        className="bg-[#302b63]/20 hover:bg-[#302b63]/30 text-white p-2.5 rounded-lg transition-all duration-300 border border-[#302b63]/30 hover:shadow-[#302b63]/20 hover:shadow-lg group/btn"
                         title="Edit"
                       >
-                        <FiEdit size={18} />
+                        <FiEdit
+                          size={18}
+                          className="transform transition-transform duration-300 group-hover/btn:scale-110"
+                        />
                       </button>
                       <button
                         onClick={() => handleDelete(item.id)}
-                        className="bg-red-600/20 hover:bg-red-600/30 text-red-400 p-2 rounded-lg transition-colors border border-red-600/30"
+                        className="bg-red-600/20 hover:bg-red-600/30 text-red-300 p-2.5 rounded-lg transition-all duration-300 border border-red-600/30 hover:shadow-red-600/20 hover:shadow-lg group/btn"
                         title="Delete"
                       >
-                        <FiTrash2 size={18} />
+                        <FiTrash2
+                          size={18}
+                          className="transform transition-transform duration-300 group-hover/btn:scale-110"
+                        />
                       </button>
                     </div>
                   </div>
