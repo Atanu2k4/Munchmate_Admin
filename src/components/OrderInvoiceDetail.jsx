@@ -98,38 +98,6 @@ const OrderInvoiceDetail = ({ invoice, onClose }) => {
             </div>
           </div>
 
-          {/* Customer Details */}
-          <div className="flex flex-col md:flex-row justify-between mb-8">
-            <div>
-              <h2 className="font-bold text-gray-300 mb-2">From:</h2>
-              <p className="text-gray-400">MunchMate</p>
-              <p className="text-gray-400">123 Campus Street</p>
-              <p className="text-gray-400">College Food Services</p>
-              <p className="text-gray-400">support@munchmate.edu</p>
-            </div>
-            <div className="mt-4 md:mt-0">
-              <h2 className="font-bold text-gray-300 mb-2">To:</h2>
-              <p className="text-gray-400">{invoice.customer?.name || "Guest Customer"}</p>
-              {invoice.customer?.rollNumber && (
-                <p className="text-gray-400">Roll No: {invoice.customer.rollNumber}</p>
-              )}
-              {invoice.customer?.department && (
-                <p className="text-gray-400">{invoice.customer.department}</p>
-              )}
-              {(invoice.customer?.section || invoice.customer?.semester) && (
-                <p className="text-gray-400">
-                  {invoice.customer.section && `Section: ${invoice.customer.section}`}
-                  {invoice.customer.section && invoice.customer.semester && ', '}
-                  {invoice.customer.semester && invoice.customer.semester}
-                </p>
-              )}
-              <p className="text-gray-400">{invoice.customer?.email}</p>
-              {invoice.customer?.contactNumber && (
-                <p className="text-gray-400">Contact: {invoice.customer.contactNumber}</p>
-              )}
-            </div>
-          </div>
-
           {/* Order Items */}
           <div className="overflow-x-auto mb-8">
             <table className="w-full">
@@ -156,18 +124,10 @@ const OrderInvoiceDetail = ({ invoice, onClose }) => {
             </table>
           </div>
 
-          {/* Totals */}
-          <div className="flex justify-end">
+          {/* Total Amount Only */}
+          <div className="flex justify-end mb-8">
             <div className="w-full md:w-1/3">
-              <div className="flex justify-between py-2">
-                <span className="font-medium text-gray-300">Subtotal:</span>
-                <span className="text-gray-300">₹{invoice.subtotal?.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="font-medium text-gray-300">Tax ({invoice.tax ? (invoice.tax * 100).toFixed() : '0'}%):</span>
-                <span className="text-gray-300">₹{(invoice.tax ? invoice.subtotal * invoice.tax : 0).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between py-2 border-t border-gray-800 font-bold">
+              <div className="flex justify-between py-2 font-bold">
                 <span className="text-gray-200">Total:</span>
                 <span className="text-gray-100">₹{invoice.totalAmount?.toFixed(2)}</span>
               </div>
@@ -183,43 +143,23 @@ const OrderInvoiceDetail = ({ invoice, onClose }) => {
             </div>
           )}
 
-          {/* Additional Info */}
+          {/* Delivery Status Only */}
           <div className="mt-8 pt-4 border-t border-gray-800">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-bold text-gray-300 mb-2">Delivery Status</h3>
-                <div className={`p-4 rounded-lg bg-${deliveryStatusColor}-500/10 border border-${deliveryStatusColor}-500/30`}>
-                  <div className="flex items-center">
-                    {deliveryIcon}
-                    <span className={`ml-2 text-${deliveryStatusColor}-500 font-medium`}>
-                      {invoice.deliveryStatus}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-gray-400 text-sm">
-                    {invoice.deliveryStatus === "Not Delivered" && "Your order is being prepared."}
-                    {invoice.deliveryStatus === "In Transit" && "Your order is on the way."}
-                    {invoice.deliveryStatus === "Delivered" && "Your order has been delivered."}
-                    {invoice.deliveryStatus === "Cancelled" && "This order has been cancelled."}
-                  </p>
+            <div>
+              <h3 className="font-bold text-gray-300 mb-2">Delivery Status</h3>
+              <div className={`p-4 rounded-lg bg-${deliveryStatusColor}-500/10 border border-${deliveryStatusColor}-500/30`}>
+                <div className="flex items-center">
+                  {deliveryIcon}
+                  <span className={`ml-2 text-${deliveryStatusColor}-500 font-medium`}>
+                    {invoice.deliveryStatus}
+                  </span>
                 </div>
-              </div>
-
-              <div>
-                <h3 className="font-bold text-gray-300 mb-2">Order Actions</h3>
-                <div className="space-y-2">
-                  <button
-                    className="w-full py-2 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition"
-                    onClick={() => alert("Order status update would happen here")}
-                  >
-                    Update Status
-                  </button>
-                  <button
-                    className="w-full py-2 px-4 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-medium transition"
-                    onClick={() => alert("Contact customer action would happen here")}
-                  >
-                    Contact Customer
-                  </button>
-                </div>
+                <p className="mt-2 text-gray-400 text-sm">
+                  {invoice.deliveryStatus === "Not Delivered" && "Your order is being prepared."}
+                  {invoice.deliveryStatus === "In Transit" && "Your order is on the way."}
+                  {invoice.deliveryStatus === "Delivered" && "Your order has been delivered."}
+                  {invoice.deliveryStatus === "Cancelled" && "This order has been cancelled."}
+                </p>
               </div>
             </div>
           </div>
