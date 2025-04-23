@@ -20,14 +20,12 @@ const AdminNavbar = () => {
     if (path.includes("/admin/menu")) setActiveItem("Menu");
     else if (path.includes("/admin/orders")) setActiveItem("Orders");
     else if (path.includes("/admin/scan")) setActiveItem("Scan QR");
-    else if (path.includes("/admin/profile")) setActiveItem("Profile");
   }, [location.pathname]);
 
   const menuItems = [
     { name: "Menu", icon: <FiBookOpen />, path: "/admin/menu" },
     { name: "Orders", icon: <FiList />, path: "/admin/orders" },
     { name: "Scan QR", icon: <FiCamera />, path: "/admin/scan" },
-    { name: "Profile", icon: <FiUser />, path: "/admin/profile" },
   ];
 
   const handleNavigation = (itemName, path) => {
